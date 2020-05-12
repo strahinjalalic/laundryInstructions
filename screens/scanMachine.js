@@ -1,5 +1,5 @@
 import React, {useState, useEffect, Component, useRef, useReducer} from 'react';
-import {View, Text, StyleSheet, Dimensions, SafeAreaView, TouchableOpacity, Image, FlatList } from 'react-native';
+import {View, Text, StyleSheet, Dimensions, SafeAreaView, TouchableOpacity, Image, FlatList, ImageBackground } from 'react-native';
 import { Button } from 'react-native-paper';
 import { Camera, requestPermissionsAsync } from 'expo-camera';
 import { FontAwesome } from '@expo/vector-icons';
@@ -16,36 +16,6 @@ const clarifai = new Clarifai.App({
 
 process.nextTick = setImmediate;
 
-// const concept = clarifai.inputs.create({
-//     url:  "https://static.tehnomanija.rs/UserFiles/category_images/359.png",
-//     concepts: [
-//         {
-//             id: "Ves Masine",
-//             value: true
-//         }
-//     ]
-// });
-
-// const model = clarifai.models.create(
-//         "CUSTOM_MODEL",
-//         [
-//             {
-//                 "id" : "Ves Masine"
-//             }
-//         ]
-//     ).then(function(response) {
-//         // let model_id = response['Model']['id'];
-//         // return model_id;
-//         let id = response['id'];
-
-//     });
-
-//     const train = clarifai.models.train(id).then(function(response, image) {
-//         let modelV = response['modelVersion']['id'];
-//         let pred = clarifai.models.predict({id: id, version: modelV}, image);
-//         return pred;
-//     });
-
 const ScanMachine = props =>  {
     const {id} = props.route.params;
     const selectedCategory = CATEGORIES.find(cat => cat.id === id);
@@ -54,6 +24,7 @@ const ScanMachine = props =>  {
     const [ratio, setRatio] = useState(null);
     const [capturedPhoto, setCapturedPhoto] = useState(null);
     const [prediction, setPrediction] = useState([]);
+    const [open, setOpen] = useState(false);
     
     useEffect(() => {
         (async () => {
@@ -73,14 +44,13 @@ const ScanMachine = props =>  {
     async function takePicture() {
         if(camRef) {
             let data = await camRef.current.takePictureAsync();
-            //console.log(data);
             setCapturedPhoto(data.uri);
             return data.uri;
         }
     }
 
     async function resize(photo) {
-        let imageManipulate = await ImageManipulator.manipulateAsync(photo, [{resize: {height: 350, width: 300}}], {base64: true});
+        let imageManipulate = await ImageManipulator.manipulateAsync(photo, [{resize: {height: 500, width: 500}}], {base64: true});
         return imageManipulate.base64;
     }
 
@@ -95,31 +65,26 @@ const ScanMachine = props =>  {
         let predict = await predictions(resized);
         setPrediction(predict.outputs[0].data.concepts)
     }
-
-    return (
-        <View style={{ flex: 1}}>
-            <Camera style={{ flex: 1, alignItems:'center'}} ref={camRef} ratio={ratio}>
-                <View style={{ flex: 1, backgroundColor: 'transparent', margin: 20, justifyContent: 'space-between'}}>
-                 {prediction &&  <FlatList data={prediction.map(predict => ({
-                        key: predict.name,
-                    }))} renderItem={({ item }) => (
-                       <Text style={{fontSize: 17, color: '#fff'}}>{item.key + " "}</Text>
-                    )} numColumns={4} /> } 
-                    </View>
+        return (
+            <View style={styles.screen}>
+                <Camera style={{ flex: 1, alignItems:'center'}} ref={camRef} ratio={ratio}>
+                    { prediction &&
+                        <FlatList data={prediction.map(predict => ({
+                                key: predict.name,
+                            }))} renderItem={({ item }) => (
+                                <Text style={styles.text}>{item.key + " "}</Text> 
+                            )} numColumns={4} /> 
+                    }
                     <BarcodeMask edgeColor={'#62B1F6'} backgroundColor={'transparent'} width={300} height={350} showAnimatedLine={false} />
                     <View style={{flex: 1, justifyContent: 'space-between', justifyContent:'flex-end', margin: 20}}>
                         <TouchableOpacity style={{ backgroundColor: 'transparent', alignSelf: 'flex-end'}} onPress={detectObject}>
                             <FontAwesome name="camera" style={{color: '#fff', fontSize: 40, alignContent: 'flex-start'}} />    
                         </TouchableOpacity>
-                        </View>
-            </Camera>
-            {/* { capturedPhoto &&
-                    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', margin: 20}}>
-                        <Image style={{width: '100%', height: '100%', borderRadius: 10}} source={{uri: capturedPhoto}} />
-                    </View> } */}
-        </View>
-    );
-};
+                    </View>
+                </Camera>
+            </View>
+        );
+};                               
 
 const styles = StyleSheet.create({
     screen: {
@@ -130,6 +95,18 @@ const styles = StyleSheet.create({
         flex: 1,
         width: Dimensions.get('window').height.width / 3,
         height: Dimensions.get('window').height / 3
+    },
+    preview: {
+        height: Dimensions.get('window').height,
+        width: Dimensions.get('window').width,
+        resizeMode: 'cover',
+        justifyContent:'flex-start',
+    },
+    text: {
+        fontSize: 20, 
+        color: '#fff',
+        paddingLeft: Dimensions.get('window').width / 2 - Dimensions.get('window').width, 
+        paddingTop: Dimensions.get('window').height / 20
     }
 });
 

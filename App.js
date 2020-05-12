@@ -9,7 +9,6 @@ import { SafeAreaView } from 'react-navigation';
 import { DrawerItemList, DrawerItem, createDrawerNavigator, DrawerContent } from '@react-navigation/drawer';
 import {Icon} from 'native-base';
 
-
 import bigHouseMachines from './screens/bigHouseMachines';
 import smallHouseMachines from './screens/smallHouseMachines';
 import ScanMachine from './screens/scanMachine';
