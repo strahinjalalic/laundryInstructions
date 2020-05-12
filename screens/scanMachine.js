@@ -5,6 +5,7 @@ import { Camera, requestPermissionsAsync } from 'expo-camera';
 import { FontAwesome } from '@expo/vector-icons';
 import * as ImageManipulator from "expo-image-manipulator";
 import BarcodeMask from 'react-native-barcode-mask';
+import Toast, { DURATION } from 'react-native-easy-toast';
 
 import HeaderFile from '../components/Header';
 import {CATEGORIES} from '../data/dummy-data';
@@ -20,6 +21,7 @@ const ScanMachine = props =>  {
     const {id} = props.route.params;
     const selectedCategory = CATEGORIES.find(cat => cat.id === id);
     const camRef = useRef(null);
+    const toastRef = useRef();
     const [hasPermission, setHasPermission] = useState(null);
     const [ratio, setRatio] = useState(null);
     const [capturedPhoto, setCapturedPhoto] = useState(null);
@@ -63,7 +65,7 @@ const ScanMachine = props =>  {
         let photo = await takePicture();
         let resized = await resize(photo);
         let predict = await predictions(resized);
-        setPrediction(predict.outputs[0].data.concepts)
+        setPrediction(predict.outputs[0].data.concepts);
     }
         return (
             <View style={styles.screen}>
@@ -72,7 +74,7 @@ const ScanMachine = props =>  {
                         <FlatList data={prediction.map(predict => ({
                                 key: predict.name,
                             }))} renderItem={({ item }) => (
-                                <Text style={styles.text}>{item.key + " "}</Text> 
+                                toastRef.current.show(<View><Text style={styles.text}>The device is: {item.key + " "}</Text></View>)  
                             )} numColumns={4} /> 
                     }
                     <BarcodeMask edgeColor={'#62B1F6'} backgroundColor={'transparent'} width={300} height={350} showAnimatedLine={false} />
@@ -82,6 +84,7 @@ const ScanMachine = props =>  {
                         </TouchableOpacity>
                     </View>
                 </Camera>
+                <Toast ref={toastRef} style={{backgroundColor: '#352d70'}} positionValue={35} position="top" fadeInDuration={800} fadeOutDuration={1000} opacity={0.9} />
             </View>
         );
 };                               
@@ -104,9 +107,7 @@ const styles = StyleSheet.create({
     },
     text: {
         fontSize: 20, 
-        color: '#fff',
-        paddingLeft: Dimensions.get('window').width / 2 - Dimensions.get('window').width, 
-        paddingTop: Dimensions.get('window').height / 20
+        color: 'white',
     }
 });
 
