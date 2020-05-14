@@ -57,36 +57,37 @@ const ScanMachine = props =>  {
     }
 
     async function predictions(image) {
-        let pred = await clarifai.models.predict({id: "Custom_model", version: "2e44840930924cc9b92ebe6a0d67e2af"}, image);
+        let pred = await clarifai.models.predict({id: "Custom_model", version: "68d93edf1d504aaea02b8c964ac6f731"}, image);
         return pred;
     }
 
-    async function detectObject() {
+    async function detectObject(item) {
         let photo = await takePicture();
         let resized = await resize(photo);
         let predict = await predictions(resized);
         setPrediction(predict.outputs[0].data.concepts);
     }
-        return (
-            <View style={styles.screen}>
-                <Camera style={{ flex: 1, alignItems:'center'}} ref={camRef} ratio={ratio}>
-                    { prediction &&
-                        <FlatList data={prediction.map(predict => ({
-                                key: predict.name,
-                            }))} renderItem={({ item }) => (
+
+    return (
+        <View style={styles.screen}>
+            <Camera style={{ flex: 1, alignItems:'center'}} ref={camRef} ratio={ratio}>
+                { prediction &&
+                    <FlatList data={prediction.slice(0,1).map(predict => ({
+                            key: predict.name,
+                        }))} renderItem={({ item }) => (
                                 toastRef.current.show(<View><Text style={styles.text}>The device is: {item.key + " "}</Text></View>)  
-                            )} numColumns={4} /> 
-                    }
-                    <BarcodeMask edgeColor={'#62B1F6'} backgroundColor={'transparent'} width={300} height={350} showAnimatedLine={false} />
-                    <View style={{flex: 1, justifyContent: 'space-between', justifyContent:'flex-end', margin: 20}}>
-                        <TouchableOpacity style={{ backgroundColor: 'transparent', alignSelf: 'flex-end'}} onPress={detectObject}>
-                            <FontAwesome name="camera" style={{color: '#fff', fontSize: 40, alignContent: 'flex-start'}} />    
-                        </TouchableOpacity>
-                    </View>
-                </Camera>
-                <Toast ref={toastRef} style={{backgroundColor: '#352d70'}} positionValue={35} position="top" fadeInDuration={800} fadeOutDuration={1000} opacity={0.9} />
-            </View>
-        );
+                        )} numColumns={4} /> 
+                }
+                <BarcodeMask edgeColor={'#62B1F6'} backgroundColor={'transparent'} width={300} height={350} showAnimatedLine={false} />
+                <View style={{flex: 1, justifyContent: 'space-between', justifyContent:'flex-end', margin: 20}}>
+                    <TouchableOpacity style={{ backgroundColor: 'transparent', alignSelf: 'flex-end'}} onPress={detectObject}>
+                        <FontAwesome name="camera" style={{color: '#fff', fontSize: 40, alignContent: 'flex-start'}} />    
+                    </TouchableOpacity>
+                </View>
+            </Camera>
+            <Toast ref={toastRef} style={{backgroundColor: '#352d70'}} positionValue={35} position="top" fadeInDuration={800} fadeOutDuration={1000} opacity={0.9} />
+        </View>
+    );
 };                               
 
 const styles = StyleSheet.create({
